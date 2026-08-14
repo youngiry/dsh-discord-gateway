@@ -1,0 +1,34 @@
+# dsh-discord-gateway bundle patch. The gateway is a pure server-side bundle:
+# it mounts no browser layer and composes directly over dsh-base, exactly like
+# dsh-headless — the Discord client is a long-lived driver instead of a
+# one-shot task runner.
+
+# Persona: the deployment persona is a deployment choice; this default matches
+# the web/headless surfaces and stays overridable in the profile patch layer.
+- id: system-prompt
+  config:
+    persona: >-
+      You are a coding agent powered by the {{model}} model. Your working directory is {{cwd}}.
+
+# The shared module-reload HMR row stays off for the same reason as headless:
+# a long-lived daemon does not need the watch-only fallback.
+- id: hmr
+  disabled: true
+
+- id: tools
+  config:
+    # Keep the same temporary process-wide Code Mode opt-in as the other surfaces.
+    mode: !!js process.env.DSH_TOOLS_MODE
+
+- insert:
+    # Code Mode is a core execution capability, not a Web component.
+    - id: code-runtime
+      name: '@deepseek-ai/dsh-code-runtime-worker-thread'
+
+    # The gateway row. All values come from the plugin config (env-overridable);
+    # the profile's own cordis.patch.yml can restate any key.
+    - id: discord-gateway
+      name: dsh-discord-gateway
+      config:
+        token: !!js process.env.DISCORD_BOT_TOKEN
+        cwd: !!js process.cwd()
