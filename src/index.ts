@@ -193,6 +193,13 @@ export function apply(ctx: Context, rawConfig: Partial<DiscordGatewayConfig>): v
     return text
   }
 
+  /** Strip @mentions and trailing whitespace from a trigger message (Hermes
+   *  strips the bot mention before feeding the agent; same for role/user
+   *  mentions that are Discord syntax noise, not task content). */
+  function stripMentions(text: string): string {
+    return text.replace(/<@!?&?\d+>/g, ' ').replace(/\s+/g, ' ').trim()
+  }
+
   /** Drive one user message through the chat's agent. */
   async function handleUserMessage(message: Message): Promise<void> {
     const loc = locationOf(message)
@@ -202,12 +209,14 @@ export function apply(ctx: Context, rawConfig: Partial<DiscordGatewayConfig>): v
     }
     const channel = await resolveReplyChannel(message, loc)
     const outKey = `${channel.id}:${randomUUID()}`
+    const prompt = stripMentions(message.content)
+    if (prompt === '') return
     try {
       const agent = await sessions.getOrCreate({ ...loc, threadId: channel.isThread() ? channel.id : loc.threadId })
       turns.set(agent.session.id, { loc: { ...loc, channelId: channel.id, threadId: channel.isThread() ? channel.id : undefined }, outKey })
       outbound.startTurn(outKey, channel)
       agent.followup(createUserMessage({
-        content: [{ type: 'text', text: message.content }],
+        content: [{ type: 'text', text: prompt }],
         source: { kind: 'plugin', plugin: 'dsh-discord-gateway', form: 'relay' },
       }))
     } catch (error) {
