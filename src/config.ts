@@ -36,6 +36,8 @@ export interface DiscordGatewayConfig {
   requireMention?: boolean
   /** Auto-create a thread under a guild channel message that triggers the bot. */
   autoThread?: boolean
+  /** Guild channels: one session per user (Hermes default) vs channel-shared. */
+  groupSessionsPerUser?: boolean
   /** Merge timeout (seconds) for multi-part mobile input (`..` continuation). */
   mergeTimeoutSecs?: number
 }
@@ -51,6 +53,7 @@ export const DiscordGatewayConfigSchema = z.object({
   allowAllUsers: z.boolean(),
   requireMention: z.boolean(),
   autoThread: z.boolean(),
+  groupSessionsPerUser: z.boolean(),
   mergeTimeoutSecs: z.number(),
 })
 
@@ -67,6 +70,7 @@ export function resolveConfig(raw: Partial<DiscordGatewayConfig>): DiscordGatewa
     allowAllUsers: raw.allowAllUsers ?? process.env.DISCORD_ALLOW_ALL === 'true',
     requireMention: raw.requireMention ?? process.env.DISCORD_REQUIRE_MENTION !== 'false',
     autoThread: raw.autoThread ?? process.env.DISCORD_AUTO_THREAD !== 'false',
+    groupSessionsPerUser: raw.groupSessionsPerUser ?? process.env.DISCORD_GROUP_SESSIONS_PER_USER !== 'false',
     mergeTimeoutSecs: raw.mergeTimeoutSecs ?? 5,
   }
 }

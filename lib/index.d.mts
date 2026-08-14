@@ -25,6 +25,8 @@ interface DiscordGatewayConfig {
   requireMention?: boolean;
   /** Auto-create a thread under a guild channel message that triggers the bot. */
   autoThread?: boolean;
+  /** Guild channels: one session per user (Hermes default) vs channel-shared. */
+  groupSessionsPerUser?: boolean;
   /** Merge timeout (seconds) for multi-part mobile input (`..` continuation). */
   mergeTimeoutSecs?: number;
 }
@@ -40,17 +42,19 @@ declare const DISCORD_MAX_LENGTH = 2000;
 declare function splitText(text: string, max?: number): string[];
 //#endregion
 //#region src/session.d.ts
-/** One Discord chat location: either a DM with a user or a guild channel/thread. */
+/** One Discord chat location: a DM, or a guild channel/thread plus the actor. */
 interface ChatLocation {
   guildId?: string;
   channelId?: string;
   threadId?: string;
   dmUserId?: string;
+  /** The Discord user id of the actor (used for per-user guild sessions). */
+  userId?: string;
 }
-/** Stable, collision-resistant session id derived from the location. */
-declare function sessionKey(loc: ChatLocation): string;
+/** Stable, collision-resistant session key derived from the location. */
+declare function sessionKey(loc: ChatLocation, groupSessionsPerUser?: boolean): string;
 /** The durable SessionId for one chat location. */
-declare function sessionIdFor(loc: ChatLocation): SessionId;
+declare function sessionIdFor(loc: ChatLocation, groupSessionsPerUser?: boolean): SessionId;
 //#endregion
 //#region src/index.d.ts
 declare const name = "discord-gateway";
@@ -67,6 +71,7 @@ declare const Config: import("@deepseek-ai/schemastery").default<Schemastery.Obj
   allowAllUsers: import("@deepseek-ai/schemastery").default<boolean, boolean>;
   requireMention: import("@deepseek-ai/schemastery").default<boolean, boolean>;
   autoThread: import("@deepseek-ai/schemastery").default<boolean, boolean>;
+  groupSessionsPerUser: import("@deepseek-ai/schemastery").default<boolean, boolean>;
   mergeTimeoutSecs: import("@deepseek-ai/schemastery").default<number, number>;
 }>, Schemastery.ObjectT<{
   token: import("@deepseek-ai/schemastery").default<string, string>;
@@ -79,6 +84,7 @@ declare const Config: import("@deepseek-ai/schemastery").default<Schemastery.Obj
   allowAllUsers: import("@deepseek-ai/schemastery").default<boolean, boolean>;
   requireMention: import("@deepseek-ai/schemastery").default<boolean, boolean>;
   autoThread: import("@deepseek-ai/schemastery").default<boolean, boolean>;
+  groupSessionsPerUser: import("@deepseek-ai/schemastery").default<boolean, boolean>;
   mergeTimeoutSecs: import("@deepseek-ai/schemastery").default<number, number>;
 }>>;
 declare function apply(ctx: Context, rawConfig: Partial<DiscordGatewayConfig>): void;

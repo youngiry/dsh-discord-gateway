@@ -9,16 +9,17 @@ import { SlashCommandBuilder, type ChatInputCommandInteraction, type Client } fr
 import type { DiscordGatewayConfig } from './config.ts'
 import type { SessionManager, ChatLocation } from './session.ts'
 
-/** Location of the chat that invoked a slash command. */
+/** Location of the chat that invoked a slash command (carries the actor for
+ *  per-user guild sessions, matching Hermes' group_sessions_per_user). */
 export function interactionLocation(interaction: ChatInputCommandInteraction): ChatLocation {
   if (interaction.channel?.isDMBased()) {
     return { dmUserId: interaction.user.id }
   }
   const channel = interaction.channel
   if (channel?.isThread()) {
-    return { guildId: channel.guildId, channelId: channel.parentId ?? channel.id, threadId: channel.id }
+    return { guildId: channel.guildId, channelId: channel.parentId ?? channel.id, threadId: channel.id, userId: interaction.user.id }
   }
-  return { guildId: interaction.guildId ?? undefined, channelId: interaction.channelId }
+  return { guildId: interaction.guildId ?? undefined, channelId: interaction.channelId, userId: interaction.user.id }
 }
 
 /** Register guild-scoped slash commands on every guild the bot can see. */

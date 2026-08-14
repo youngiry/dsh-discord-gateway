@@ -9,9 +9,9 @@
 | 能力 | 说明 |
 |---|---|
 | @bot 触发 | 频道内 `@bot` 提及触发；DM 中全部消息触发 |
-| 每频道持久会话 | 每个 channel / thread / DM 一个独立 agent 会话，跨进程重启自动恢复（`session-persistence-jsonl`） |
+| 每频道持久会话 | 每个 channel / thread / DM 一个独立 agent 会话，跨进程重启自动恢复（`session-persistence-jsonl`）；群聊默认**每人独立会话**（对齐 Hermes） |
 | 自动建 thread | 频道内触发时自动在消息下建 thread，回复发进 thread（可关） |
-| DM / 群组隔离 | DM 每人独立会话；群聊频道共享、thread 单独隔离 |
+| DM / 群组隔离 | DM 每人独立；群聊频道默认每人独立（`DISCORD_GROUP_SESSIONS_PER_USER=false` 可切频道共享）；thread 全体共享 |
 | 原生斜杠命令 | `/help` `/new` `/status` `/clear`，无权限注册时自动降级为文本命令 |
 | 渐进流式编辑 | 打字指示器 + 流式增量编辑回复，最终代码块感知分片（`（i/n）` 序号） |
 | 鉴权 | fail-closed：token 必配；频道 / 角色 / 用户 allowlist，默认拒绝一切 |
@@ -57,6 +57,7 @@ dsh plugin --profile discord add /path/to/dsh-discord-gateway
 | `DISCORD_ALLOW_ALL` | `false` | 测试用，全部放行（会打印警告） |
 | `DISCORD_REQUIRE_MENTION` | `true` | 频道内必须 @bot；DM 恒触发 |
 | `DISCORD_AUTO_THREAD` | `true` | 频道触发时自动建 thread |
+| `DISCORD_GROUP_SESSIONS_PER_USER` | `true` | 群聊频道每人独立会话；设 `false` 频道共享 |
 
 也可以写在 `~/.dsh/profiles/discord/cordis.patch.yml` 覆盖（例如换模型 / 指定工作目录）：
 

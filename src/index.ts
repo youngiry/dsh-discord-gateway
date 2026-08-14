@@ -67,7 +67,8 @@ export function apply(ctx: Context, rawConfig: Partial<DiscordGatewayConfig>): v
     ],
   })
 
-  /** Location of the chat a message arrived in. */
+  /** Location of the chat a message arrived in (carries the actor for
+   *  per-user guild sessions, matching Hermes' group_sessions_per_user). */
   function locationOf(message: Message): ChatLocation {
     if (message.channel.isDMBased()) {
       return { dmUserId: message.author.id }
@@ -78,11 +79,13 @@ export function apply(ctx: Context, rawConfig: Partial<DiscordGatewayConfig>): v
         guildId: channel.guildId,
         channelId: channel.parentId ?? channel.id,
         threadId: channel.id,
+        userId: message.author.id,
       }
     }
     return {
       guildId: channel.guildId,
       channelId: channel.id,
+      userId: message.author.id,
     }
   }
 
@@ -297,7 +300,7 @@ async function handlePlainCommand(
 ): Promise<void> {
   const loc = message.channel.isDMBased()
     ? { dmUserId: message.author.id }
-    : { guildId: message.guildId ?? undefined, channelId: message.channelId, threadId: message.channel.isThread() ? message.channelId : undefined }
+    : { guildId: message.guildId ?? undefined, channelId: message.channelId, threadId: message.channel.isThread() ? message.channelId : undefined, userId: message.author.id }
   const command = text.replace(/^[!/]/, '').split(/\s+/)[0]?.toLowerCase()
   switch (command) {
     case 'help': {
